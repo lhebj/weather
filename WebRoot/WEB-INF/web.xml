@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" 
+	xmlns="http://java.sun.com/xml/ns/j2ee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
+	http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	
+	<display-name>weather</display-name>
+	<description>This is first milestone of weather</description>
+	
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>
+			/WEB-INF/core-servlet.xml
+			/WEB-INF/applicationContext-security-acegi.xml
+		</param-value>
+	</context-param>
+
+	<context-param>
+     	<param-name>webAppRootKey</param-name>
+     	<param-value>weather</param-value>
+	</context-param>
+	
+
+	<!-- For Spring -->
+	<context-param>
+		<param-name>log4jConfigLocation</param-name>
+		<param-value>/WEB-INF/classes/log4j.properties</param-value>
+	</context-param>
+	
+	<servlet>
+		<servlet-name>core</servlet-name>
+		<servlet-class>
+			org.springframework.web.servlet.DispatcherServlet
+		</servlet-class>
+        <!-- Don't remove init-param tag, and it is ok to keep param-value empty! -->
+        <!-- Only in this way, hibernate and filterChainProxy can work togather in the right way -->
+		<init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>
+			</param-value>
+        </init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>core</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	
+	<!--Acegi Filter Chain Proxy -->
+	<!-- 
+	<filter>
+		<filter-name>AuthenticationFilter</filter-name>
+		<filter-class>
+			com.weather.filter.AuthenticationFilter
+		</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AuthenticationFilter</filter-name>
+		<url-pattern>/login.do</url-pattern>
+	</filter-mapping>
+	
+	
+	<filter>
+		<filter-name>acegiAjaxFilter</filter-name>
+		<filter-class>
+			com.weather.filter.AcegiAjaxFilter
+		</filter-class>
+	</filter>
+	
+	<filter-mapping>
+		<filter-name>acegiAjaxFilter</filter-name>
+		<url-pattern>/j_acegi_security_check</url-pattern>
+	</filter-mapping>
+	 -->
+	 
+	<filter>
+		<filter-name>Acegi Filter Chain Proxy</filter-name>
+		<filter-class>
+			org.acegisecurity.util.FilterToBeanProxy
+		</filter-class>
+		<init-param>
+			<param-name>targetClass</param-name>
+			<param-value>
+				org.acegisecurity.util.FilterChainProxy
+			</param-value>
+		</init-param>
+	</filter>
+		
+	<filter-mapping>
+		<filter-name>Acegi Filter Chain Proxy</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	
+	<!-- 设置request的编码格式 -->
+	<filter>
+		<filter-name>Character Encoding</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+	  	<init-param>
+	  		<param-name>encoding</param-name>
+	  		<param-value>UTF-8</param-value>
+	  	</init-param>
+	  	<init-param>
+	  		<param-name>forceEncoding</param-name>
+	  		<param-value>true</param-value>
+	  	</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>Character Encoding</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+	
+	<!-- 将hibernate的session绑定到request的线程上 -->
+	<filter>
+		<filter-name>openSessionInViewFilter</filter-name>
+		<filter-class>org.springframework.orm.hibernate4.support.OpenSessionInViewFilter</filter-class>
+	</filter>
+	
+	<filter-mapping>
+		<filter-name>openSessionInViewFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+	
+	
+	<filter>
+		<filter-name>Locale Filter</filter-name>
+		<filter-class>
+			com.weather.filter.LocaleFilter
+		</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>Locale Filter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	
+	<filter>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+    	 <init-param>
+    		<param-name>confReloadCheckInterval</param-name>
+    		<param-value>0</param-value>
+    	</init-param>
+    </filter>
+
+	<filter-mapping>
+            <filter-name>UrlRewriteFilter</filter-name>
+            <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+	<!--
+		- Loads the root application context of this web app at startup.
+		- The application context is then available via
+		- WebApplicationContextUtils.getWebApplicationContext(servletContext).
+	-->
+	<!-- 
+	<listener>
+		<listener-class>org.jwebap.core.JwebapListener</listener-class>
+	</listener>
+ -->
+	<listener>
+		<listener-class>
+			org.springframework.web.context.ContextLoaderListener
+		</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>
+			org.springframework.web.util.Log4jConfigListener
+		</listener-class>
+	</listener>
+
+	<!--
+		The HttpSessionEventPublisher will publish
+		HttpSessionCreatedEvent and HttpSessionDestroyedEvent
+		to the WebApplicationContext
+	-->
+	<listener>
+		<listener-class>
+			org.acegisecurity.ui.session.HttpSessionEventPublisher
+		</listener-class>
+	</listener>
+	<listener>
+		<listener-class>
+			com.weather.util.CountOnlineUser
+		</listener-class>
+	</listener>
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+	</session-config>
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>index.html</welcome-file>
+	</welcome-file-list>
+
+	<jsp-config>
+		<taglib>
+			<taglib-uri>oscache</taglib-uri>
+			<taglib-location>/WEB-INF/tld/oscache.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+	<filter>
+		<filter-name>CacheFilter</filter-name>
+		<filter-class>
+			com.opensymphony.oscache.web.filter.CacheFilter
+		</filter-class>
+		<init-param>
+			<param-name>time</param-name>
+			<param-value>600</param-value>
+		</init-param>
+		<init-param>
+			<param-name>scope</param-name>
+			<param-value>session</param-value>
+		</init-param>
+	</filter>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/error.do?action=500</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/error.do?action=404</location>
+	</error-page>
+</web-app>
+
