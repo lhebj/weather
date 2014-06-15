@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sf.ehcache.Element;
+
+import com.weather.cache.CacheClient;
 import com.weather.util.HttpClientUtil;
 
 /**
@@ -22,10 +25,6 @@ import com.weather.util.HttpClientUtil;
 public class YahooWeather implements Weather {
 	public static String PROVENCE_CODE = "575609";
 	public static String BEIJING_CODE = "2151330";
-	private static long LAST_CACHE_TIME=0;
-	private long MAX_CACHE_TIME = 3600 * 1000; //MilliSecond
-
-	private static Map<String,List<WeatherData>> weatherMap = new HashMap<String,List<WeatherData>>();
 	
 	/**
 	 * w for WOEID.
@@ -56,25 +55,23 @@ public class YahooWeather implements Weather {
 	@Override
 	public WeatherData getCurrentDayWeather(String cityCode) {
 		// TODO Auto-generated method stub	
-		// TODO cache
-		long datetime = new Date().getTime();
-		if (datetime - LAST_CACHE_TIME > MAX_CACHE_TIME) {
-			if( weatherMap.get(cityCode) == null ||  weatherMap.get(cityCode).get(0) ==null){
-				this.fetchWeather(cityCode);
-				LAST_CACHE_TIME =  datetime;
-			}
+		if (cityCode == null) {
+			cityCode = BEIJING_CODE;
 		}
 
-		if(weatherMap.get(cityCode).size() < 0 ){
-			return null;
+		if (CacheClient.weatherCache.get(cityCode) == null) {
+			this.fetchWeather(cityCode);
 		}
-		return weatherMap.get(cityCode).get(0);
+		Element element = CacheClient.weatherCache.get(cityCode);
+		List<WeatherData> weatherList = element != null ? (List<WeatherData>) element.getObjectValue() : null;
+		return weatherList.get(0);
 	}
 
 	@Override
 	public List<WeatherData> getWeeklyWeather(String cityCode) {
 		// TODO Auto-generated method stub
-		return weatherMap.get(cityCode);
+		Element element = CacheClient.weatherCache.get(cityCode);
+		return element != null ? (List<WeatherData>) element.getObjectValue() : null;
 	}
 	
 	@Override
@@ -102,11 +99,19 @@ public class YahooWeather implements Weather {
 					wd.setHighTemp(high);
 					String text = item.substring(item.indexOf("text=\"")+6, item.indexOf("\" code="));
 					wd.setWeather(text);
-//					String code = item.substring(item.indexOf("code=\"")+6, item.indexOf("\"\\/"));
+					String code = item.substring(item.indexOf("code=\"")+6, item.lastIndexOf("\""));
 //					System.out.println(code);
+					//TODO 区分晚上和白天
+					if(code == null){
+						wd.setImgCode("default.png");
+					}else{
+						wd.setImgCode(code+"d.png");
+					}
+					
 					weatherList.add(wd);
-				}
-				weatherMap.put(cityCode, weatherList);				
+				}	
+				Element element = new Element(cityCode, weatherList);
+				CacheClient.weatherCache.put(element);
 			}
 			
 		}catch(Exception e){

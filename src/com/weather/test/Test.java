@@ -4,6 +4,7 @@ import com.weather.Weather;
 import com.weather.WeatherComCnCityCode;
 import com.weather.WeatherComCnWeather;
 import com.weather.WeatherData;
+import com.weather.YahooWeather;
 import com.weather.aqi.AQI;
 import com.weather.aqi.AQIData;
 import com.weather.aqi.MepGovAQI;
@@ -26,21 +27,27 @@ public class Test {
 		
 //		test.testMepGovAQI();
 		
-		test.testSinaGeoAndSosoAQI(ip);
+//		test.testSinaGeoAndSosoAQI(ip);
+//		
+//		test.testSinaGeoAndWeatherComCn(ip);
+//		
+//		ip = "123.119.53.131";
+//		
+//		test.testSinaGeoAndSosoAQI(ip);
+//		
+//		test.testSinaGeoAndWeatherComCn(ip);
+//		
+//		ip = "27.43.121.246";
+//		
+//		test.testSinaGeoAndSosoAQI(ip);
+//		
+//		test.testSinaGeoAndWeatherComCn(ip);
+//		
 		
-		test.testSinaGeoAndWeatherComCn(ip);
+		test.testYahooWeather();
+		test.testYahooWeather();
 		
-		ip = "123.119.53.131";
 		
-		test.testSinaGeoAndSosoAQI(ip);
-		
-		test.testSinaGeoAndWeatherComCn(ip);
-		
-		ip = "27.43.121.246";
-		
-		test.testSinaGeoAndSosoAQI(ip);
-		
-		test.testSinaGeoAndWeatherComCn(ip);
 	}
 	
 	public void testWeatherComCnCityCodeInit(){
@@ -64,6 +71,12 @@ public class Test {
 		Weather weather = new WeatherComCnWeather();
 		WeatherData weatherData = weather.getCurrentDayWeather(WeatherComCnWeather.BEIJING_CODE);
 		System.out.println(weatherData.getCity()+", "+weatherData.getCurrentTemp());
+	}
+	
+	public void testYahooWeather(){
+		Weather weather = new YahooWeather();
+		WeatherData weatherData = weather.getCurrentDayWeather(YahooWeather.PROVENCE_CODE);
+		System.out.println(weatherData.getCity()+", "+weatherData.getCurrentTemp()+","+weatherData.getImgCode());
 	}
 	
 	public void testSinaGeoAndWeatherComCn(String ip){

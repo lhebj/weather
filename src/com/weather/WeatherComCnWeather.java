@@ -89,7 +89,7 @@ public class WeatherComCnWeather implements Weather {
 			// }else{
 			// imgCode = "night/"+imgCode;
 			// }
-
+			//暂时不区分白天和晚上 TODO
 			if (imgCode.startsWith("n")) {
 				imgCode = imgCode.replaceFirst("n", "d");
 			}
