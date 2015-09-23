@@ -24,7 +24,10 @@ public class MepGovAQI implements AQI{
 	@Override
 	public AQIData getCurrentAQI(String cityCode) {		
 		if(CacheClient.weatherCache.get(cityCode) == null){
+			LogUtil.log.info("MepGovAQI.getCurrentAQI miss cache");
 			this.fetchAQI(cityCode);
+		}else{
+			LogUtil.log.info("MepGovAQI.getCurrentAQI hit cache");
 		}
 		Element element = CacheClient.weatherCache.get(cityCode);
 		return element != null ?(AQIData)element.getObjectValue(): null;
@@ -50,16 +53,16 @@ public class MepGovAQI implements AQI{
 				aqiInfo = HttpClientUtil.getInstance().getResponseByGetMethod(qurl, "GBK", false);
 			}
 			if(aqiInfo.indexOf("AQI指数为")<0){
-				LogUtil.log.info("MepGovAQI aqi info: " + aqiInfo);
+				LogUtil.log.info("MepGovAQI.fetchAQI: " + aqiInfo);
 				return;
 			}
 			aqiInfo=aqiInfo.substring(aqiInfo.indexOf("AQI指数为")).replaceAll("\\s", "").replaceAll("/n", "");
-			LogUtil.log.info("MepGovAQI aqi info: " + aqiInfo);
+			LogUtil.log.info("MepGovAQI.fetchAQI: " + aqiInfo);
 			Pattern pattern = Pattern.compile("AQI指数为[\\s\\S]*?[1234567890]*");
 			Matcher m = pattern.matcher(aqiInfo);
 			if (m.find()) {
 				aqiInfo = m.group();
-				LogUtil.log.info("MepGovAQI match aqi info: " + aqiInfo);
+				LogUtil.log.info("MepGovAQI.fetchAQI: match aqi info: " + aqiInfo);
 				AQIData myAQIData = new AQIData();
 				String aqi = aqiInfo.substring(aqiInfo.indexOf("AQI指数为") + 6);
 				myAQIData.setAqi(aqi);

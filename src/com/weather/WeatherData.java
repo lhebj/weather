@@ -67,5 +67,11 @@ public class WeatherData  implements java.io.Serializable {
 	}
 	public void setCity(String city) {
 		this.city = city;
+	}
+	@Override
+	public String toString() {
+		return "WeatherData [weather=" + weather + ", date=" + date + ", weekDay=" + weekDay + ", lowTemp=" + lowTemp
+				+ ", highTemp=" + highTemp + ", currentTemp=" + currentTemp + ", imgCode=" + imgCode + ", pm25=" + pm25
+				+ ", city=" + city + "]";
 	}		
 }

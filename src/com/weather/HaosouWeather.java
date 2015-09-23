@@ -1,3 +1,7 @@
+/* 
+ * ©2015 北京小桔科技有限公司   
+ */
+
 package com.weather;
 
 import java.net.URLEncoder;
@@ -13,14 +17,19 @@ import com.weather.cache.CacheClient;
 import com.weather.util.HttpClientUtil;
 import com.weather.util.LogUtil;
 
-public class SosoWeather implements Weather {
+/**
+ * @ClassName: HaosouWeather
+ * @author EastMountain
+ * @date 2015-9-23 下午3:31:05
+ */
+public class HaosouWeather implements Weather {
 	private static String BEIJING_CODE = "101010100";
 	private static String DEFAULT_CITY = "北京";
 	private static String QUERY_WEATHER = "天气";
 	
 	
 
-	private String dataQueryUrl = "http://www.sogou.com/sogou?rfrom=soso&ie=utf-8&sc=web&pid=-&cid=&query={0}";
+	private String dataQueryUrl = "http://www.haosou.com/s?ie=utf-8&shb=1&src=home_so.com&q={0}";
 
 	private static Map<String, String> weekMap = new HashMap<String, String>();
 	
@@ -59,8 +68,9 @@ public class SosoWeather implements Weather {
 		weatherImgCodeMap.put("小雨转中雨", "d21.png");
 		weatherImgCodeMap.put("中雨转大雨", "d22.png");
 		weatherImgCodeMap.put("大雨转暴雨", "d23.png");
-		weatherImgCodeMap.put("default", "undefined.png");
+		weatherImgCodeMap.put("default", "d0.png");
 		weatherImgCodeMap.put("阵雨转阴", "d3.png");
+		weatherImgCodeMap.put("晴转阴", "d0.png");
 	}
 
 	/**
@@ -79,10 +89,10 @@ public class SosoWeather implements Weather {
 		String city = cityCode == null ? DEFAULT_CITY : cityCode;
 
 		if (CacheClient.weatherCache.get(city) == null) {
-			LogUtil.log.info("getCurrentDayWeather miss cache");
+			LogUtil.log.info("HaosoWeather.getCurrentDayWeather miss cache");
 			this.fetchWeather(city);
 		}else{
-			LogUtil.log.info("getCurrentDayWeather hit cache");
+			LogUtil.log.info("HaosoWeather.getCurrentDayWeather hit cache");
 		}
 		Element element = CacheClient.weatherCache.get(city);
 		return element != null ? (WeatherData) element.getObjectValue() : null;
@@ -103,26 +113,32 @@ public class SosoWeather implements Weather {
 //			System.out.println(weatherInfo);
 			WeatherData wd = new WeatherData();
 			wd.setCity(city);
-			Pattern pattern = Pattern.compile("class=\"wtInfo\" id=\"sogou_vr_20007311_sk_0\">[\\s\\S]*?</div>");
+			Pattern pattern = Pattern.compile("<p class=\"mh-desc-3\">[\\s\\S]*?</p>");
 			Matcher m = pattern.matcher(weatherInfo);
 			if (m.find()) {
-				weatherInfo = m.group();
-				System.out.println(weatherInfo);
-				String weather = weatherInfo.substring(weatherInfo.indexOf("id=\"sogou_vr_20007311_sk_0\">") + 28,
-						weatherInfo.indexOf("<i>"));
+				String weatherInfoHtml = m.group();
+				LogUtil.log.info("HaosoWeather.fetchWeather:" + weatherInfoHtml);
+				String weather = weatherInfoHtml.substring(weatherInfoHtml.indexOf("<span>") + 6,
+						weatherInfoHtml.indexOf("</span>"));
 				wd.setWeather(weather);
-				
-				String currentTemp = weatherInfo.substring(weatherInfo.indexOf("<i>当前") + 5,
-						weatherInfo.lastIndexOf("</i>"));
+			}
+			
+			pattern = Pattern.compile("<div class=\"mh-time\">[\\s\\S]*?</div>");
+			m = pattern.matcher(weatherInfo);
+			if (m.find()) {
+				String tempInfoHtml = m.group();
+				LogUtil.log.info("HaosoWeather.fetchWeather:" + tempInfoHtml);
+				String currentTemp = tempInfoHtml.substring(tempInfoHtml.indexOf("实时温度：") + 5,
+						tempInfoHtml.indexOf("℃）"));
 				wd.setCurrentTemp(currentTemp);
 
 			}
 
 			String imgCodeTmp = weatherImgCodeMap.get(wd.getWeather());
-			String imgCode = "day/" + imgCodeTmp!=null?imgCodeTmp:weatherImgCodeMap.get("default");
+			String imgCode = "day/" + (imgCodeTmp==null?weatherImgCodeMap.get("default"):imgCodeTmp);
 			wd.setImgCode(imgCode);
 
-			LogUtil.log.info("fetchWeather:" + wd.toString());
+			LogUtil.log.info("HaosoWeather.fetchWeather:" + wd.toString());
 
 			Element element = new Element(city, wd);
 			CacheClient.weatherCache.put(element);
@@ -143,9 +159,8 @@ public class SosoWeather implements Weather {
 	}
 
 	public static void main(String[] args) {
-		Weather weather = new SosoWeather();
+		Weather weather = new HaosouWeather();
 		WeatherData wd = weather.getCurrentDayWeather(DEFAULT_CITY);
 		System.out.println(wd.getCurrentTemp());
 	}
-
 }

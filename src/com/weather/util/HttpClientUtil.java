@@ -47,10 +47,13 @@ public class HttpClientUtil {
 		}
 	}
 
-	public String getHttpClientResponseByGetMethod(String queryUrl, String contentCharset ) {
+	public String getHttpClientResponseByGetMethod(String queryUrl, String contentCharset ) {		
 		contentCharset = contentCharset==null?"utf-8":contentCharset;
 		LogUtil.log.info("httpclient getHttpClientResponseByGetMethod url: " + queryUrl);
 		HttpClient httpClient = new HttpClient();
+		httpClient.getParams().setParameter(
+			    HttpMethodParams.USER_AGENT,
+			    "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0");
 		// Create a method instance.
 		GetMethod getMethod = new GetMethod(queryUrl);
 		// Provide custom retry handler is necessary

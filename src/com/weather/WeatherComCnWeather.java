@@ -30,21 +30,16 @@ public class WeatherComCnWeather implements Weather {
 
 	@Override
 	public WeatherData getCurrentDayWeather(String cityCode) {
-		// TODO Auto-generated method stub
-		// TODO cache
-		// long datetime = new Date().getTime();
-		// if (datetime - LAST_CACHE_TIME > MAX_CACHE_TIME || weatherData ==
-		// null) {
-		// this.fetchWeather(cityCode);
-		// LAST_CACHE_TIME = datetime;
-		// }
-
+		// TODO Auto-generated method stub	
 		if (cityCode == null) {
 			cityCode = BEIJING_CODE;
 		}
 
 		if (CacheClient.weatherCache.get(cityCode) == null) {
+			LogUtil.log.info("getCurrentDayWeather miss cache");
 			this.fetchWeather(cityCode);
+		}else{
+			LogUtil.log.info("getCurrentDayWeather hit cache");
 		}
 		Element element = CacheClient.weatherCache.get(cityCode);
 		return element != null ? (WeatherData) element.getObjectValue() : null;
@@ -59,7 +54,7 @@ public class WeatherComCnWeather implements Weather {
 	@Override
 	public void fetchWeather(String cityCode) {
 		if (cityCode == null) {
-			return;
+			cityCode = BEIJING_CODE;
 		}
 		try {
 			String qurl = dataQueryUrl.replace("{0}", cityCode);
@@ -101,6 +96,8 @@ public class WeatherComCnWeather implements Weather {
 			String currentTemp = weatherInfo.substring(weatherInfo.indexOf("\"temp\":\"") + 8, weatherInfo.indexOf("\",\"WD"));
 			wd.setCurrentTemp(currentTemp);
 
+			LogUtil.log.info("fetchWeather:" + wd.toString());
+			
 			Element element = new Element(cityCode, wd);
 			CacheClient.weatherCache.put(element);
 		} catch (Exception e) {
@@ -113,7 +110,7 @@ public class WeatherComCnWeather implements Weather {
 	public String cityCodeAdapt(String geoCity) {
 		String cityCode = WeatherComCnCityCode.CITY_CODE.get(geoCity);
 		if(cityCode == null){
-			LogUtil.log.info(geoCity + " can be not parsed, use default ");
+			LogUtil.log.error(geoCity + " can be not parsed, use default ");
 			cityCode = BEIJING_CODE;
 		}
 		return cityCode;
